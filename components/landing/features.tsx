@@ -20,6 +20,11 @@ const features = [
         description: 'PRo users can save and access all past newsletter, Never lose your content and reuse successful formats anytime.',
     },
     {
+        icon: Clock,
+        title: 'Custom Time Ranges',
+        description: 'Generate newsletters for any timeframe - weeklu, monthly, or custom date range. Perfect for any publishing schedule.'
+    },
+    {
         icon: Zap,
         title: 'Top Announcements',
         description: 'ai Automatically curates the top 5 most important news items from your content sources for quick hightlights.',
@@ -39,12 +44,32 @@ export function Features() {
                     <h2 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
                         Everything You Need to Create Amazing Newsletters
                     </h2>
-
-
+                    <p className="mt-4 text-lg text-gray-600 dark:text-gray-400">
+                        Powerful features designed specifically for newsletter creator who value their time
+                    </p>
                 </div>
 
+                <div className="mx-auto mt-16 grid max-w-7xl grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                    {features.map((feature) => {
+                        const Icon = feature.icon;
+                        return (
+                            <Card
+                                key={feature.title}
+                                className="relative overflow-hidden transition-all hover:shadow-lg"
+                            >
+                                <CardHeader>
+                                    <div className="mb-4 inline-flex size-12 items-center justify-center rounded-lg bg-linear-to-br
+                                    from-blue-600 to-purple-600 text-white">
+                                        <Icon className="size-6" />
+                                    </div>
+                                    <CardTitle className="text-xl">{feature.title}</CardTitle>
+                                    <CardDescription className="text-base">{feature.description}</CardDescription>
+                                </CardHeader>
+                            </Card>
+                        );
+                    })}
+                </div>
             </div>
-
         </section>
-    )
+    );
 }
