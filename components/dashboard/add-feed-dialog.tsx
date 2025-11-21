@@ -5,7 +5,7 @@ import { Plus, RefreshCw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import * as React from "react";
 import { toast } from "sonner";
-import { validateAndaddFeed } from "@/actions/rss-fetch";
+import { validateAndAddFeed } from "@/actions/rss-fetch";
 import { upsertUserFromClerk } from "@/actions/user";
 import { Button } from "../ui/button";
 

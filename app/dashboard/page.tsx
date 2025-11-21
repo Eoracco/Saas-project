@@ -1,5 +1,7 @@
 import { PageHeader } from "@/components/dashboard/page-header";
+import { RssFeedManager } from "@/components/dashboard/rss-feed-manager";
 import { Sparkles } from "lucide-react";
+import { NewsletterGenerator } from "@/components/dashboard/newsletter-generator";
 
 
 export default function Dashboard() {

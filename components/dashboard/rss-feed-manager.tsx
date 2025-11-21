@@ -3,9 +3,9 @@ import { Plus, ExternalLink } from "lucide-react";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { upsertUserFromClerk } from "@/actions/user";
-import getRssFeedsByUserId ;
+import { getRssFeedsByUserId } from "@/actions/rss-feed"; // ✅ 添加正确的导入路径
 import { AddFeedDialog } from "./add-feed-dialog";
-
+import { DeleteFeedButton } from "./delete-feed-button"; // ✅ 需要导入 DeleteFeedButton
 
 interface RssFeed {
     id: string;
@@ -38,9 +38,9 @@ export async function RssFeedManager() {
                         </CardDescription>
                     </div>
                     <AddFeedDialog
-                        currentFeeDCount={feeds.length}
-                        feedLimit=
-                    
+                        currentFeedCount={feeds.length}  // ✅ 修复拼写
+                        feedLimit={feedLimit}  // ✅ 添加缺失的值
+                        isPro={isPro}  // ✅ 添加缺失的属性
                     />
                 </div>
             </CardHeader>
@@ -51,7 +51,7 @@ export async function RssFeedManager() {
                             No RSS feeds added yet
                         </div>
                         <AddFeedDialog
-                            currentFeeDCount={feeds.length}
+                            currentFeedCount={feeds.length}  // ✅ 修复拼写
                             feedLimit={feedLimit}
                             isPro={isPro}
                             trigger={
@@ -94,12 +94,12 @@ export async function RssFeedManager() {
                                         )}
                                         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
                                             <span className="whitespace-nowrap">
-                                                {feed._count?.articles ?? 0}article
+                                                {feed._count?.articles ?? 0} article
                                                 {feed._count?.articles !== 1 ? "s" : ""}
                                             </span>
                                             {feed.lastFetched && (
                                                 <span className="whitespace-nowrap">
-                                                    Last fetched:{""}
+                                                    Last fetched:{" "}
                                                     {new Date(feed.lastFetched).toLocaleDateString()}
                                                 </span>
                                             )}
