@@ -101,7 +101,7 @@ model Newsletter {
   startDate             DateTime
   endDate               DateTime
   userInput             String?
-  feedUsed              String?  @db.ObjectId
+  feedsUsed             String[] @db.ObjectId // ✅ MongoDB 直接支持数组，不需要 @db.Array()
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 

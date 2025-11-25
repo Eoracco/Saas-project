@@ -1,9 +1,8 @@
-import { getArticlesByFeedsAndDateRange } from "@/actions/rss-fetch";
+
+import { getArticlesByFeedAndDateRange } from "@/actions/rss-article";
 import { fetchAndStoreFeed } from "@/actions/rss-fetch";
 import { prisma } from "@/lib/prisma";
 import type { PrepareFeedsParams } from "./types";
-import { Users } from "lucide-react";
-import { serverHooks } from "next/dist/server/app-render/entry-base";
 
 // FEED REFRESH UTILITIES
 
@@ -125,7 +124,7 @@ export async function prepareFeedsAndArticles(params: PrepareFeedsParams) {
     }
 
     // FEtch articles from the database within the specified date range
-    const articles = await getArticlesByFeedsAndDateRange(
+    const articles = await getArticlesByFeedAndDateRange(
         params.feedIds,
         params.startDate,
         params.endDate,

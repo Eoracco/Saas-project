@@ -36,7 +36,7 @@ export interface FeedMetadata {
 
 // Articles data extracted from RSS feed item
 
-export interface ArticlesData {
+export interface ArticleData {
     guid: string;
     title: string;
     link: string;

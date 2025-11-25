@@ -19,7 +19,7 @@ interface RssFeed {
 }
 
 export async function RssFeedManager() {
-    const { has, userId } = await auth();
+    const { userId, has } = await auth();
     const isPro = await has({ plan: "pro" });
     const feedLimit = isPro ? Infinity : 3;
 

@@ -1,13 +1,9 @@
 "use server"
 
-
-
 import { isPrismaError, wrapDatabaseOperation } from "@/lib/darabase/error-handler";
 
 import { ARTICLE_ORDER_BY_DATE_DESC, ARTICLE_WITH_FEED_INCLUDE } from "@/lib/darabase/prisma-helpers";
-
 import { prisma } from "@/lib/prisma";
-
 import type { ArticleCreateData, BulkOperationResult } from "@/lib/rss/types";
 
 // RSS ARTICLE ACTIONS
@@ -85,10 +81,48 @@ export async function bulkCreateRssArticles(
             } else {
                 results.errors++;
                 console.error(`Failed to create article ${article.guid}:`, error);
+                // Log the article data that caused the error for debugging
+                console.error(`Problematic article data:`, JSON.stringify(article, null, 2));
             }
         }
     }
 
 
     return results;
+}
+
+// Fetched articles by selected feeds and date ange with importance scoring
+// Importance is calculated by the number of sources(sourceFeedIds length)
+
+export async function getArticlesByFeedAndDateRange(
+    feedIds: string[],
+    startDate: Date,
+    endDate: Date,
+    limit = 100,
+) {
+    return wrapDatabaseOperation(async () => {
+        const articles = await prisma.rssArticle.findMany({
+            where: {
+                OR: [
+                    { feedId: { in: feedIds } },
+                    {
+                        sourceFeedIds: {
+                            hasSome: feedIds,
+                        },
+                    },
+                ],
+                pubDate: {
+                    gte: startDate,
+                    lte: endDate
+                },
+            },
+            include: ARTICLE_WITH_FEED_INCLUDE,
+            orderBy: ARTICLE_ORDER_BY_DATE_DESC,
+            take: limit,
+        });
+        return articles.map((article: (typeof articles)[number]) => ({
+            ...article,
+            sourceCount: article.sourceFeedIds.length,
+        }));
+    }, "fetch article by feeds and date range");
 }

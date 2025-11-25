@@ -2,10 +2,10 @@
 
 import { wrapDatabaseOperation } from "@/lib/darabase/error-handler";
 import { prisma } from "@/lib/prisma";
-import { type ArticlesData, fetchAndParseFeed, validateFeedUrl } from "@/lib/rss/parser";
+import { type ArticleData, fetchAndParseFeed, validateFeedUrl } from "@/lib/rss/parser";
 import { bulkCreateRssArticles } from "./rss-article";
 import { updateFeedLastFetched } from "./rss-feed";
-import { ARTICLE_ORDER_BY_DATE_DESC, ARTICLE_WITH_FEED_INCLUDE } from "@/lib/darabase/prisma-helpers";
+
 
 
 // Validates and Rss url and created a new feed with initial artical fetch
@@ -51,10 +51,19 @@ export async function validateAndAddFeed(userId: string, url: string) {
         } catch (fetchError) {
             //    if initial fetch fails, still return the feed
             console.error("Failed to fetch initial articles:", fetchError);
+            return {
+                feed,
+                articlesCreated: 0,
+                articlesSkipped: 0,
+                error: "Feed created but initial fetch failed"
+            };
         }
 
     }, "add RSS feed");
 }
+
+
+// Fetched an RSS feed and stored new srticles
 
 export async function fetchAndStoreFeed(feedId: string) {
     return wrapDatabaseOperation(async () => {
@@ -67,11 +76,12 @@ export async function fetchAndStoreFeed(feedId: string) {
             throw new Error(`Feed with ID ${feedId} not found`);
         }
 
+
         // Fetch and parse the rss feed
         const { metadata, articles } = await fetchAndParseFeed(feed.url, feedId);
 
         // Convert ArticleData to format expected by bulkCreateRssArticles
-        const articlesToCreate = articles.map((article: ArticlesData) => ({
+        const articlesToCreate = articles.map((article: ArticleData) => ({
             feedId: feed.id,
             guid: article.guid,
             title: article.title,
@@ -99,41 +109,41 @@ export async function fetchAndStoreFeed(feedId: string) {
     }, "fetch feed")
 }
 
-// FEtched articles by selected feeds and date range with importance scoring
-// Importance is calculated by the number of sources (sourcefeedIds length)
+// // FEtched articles by selected feeds and date range with importance scoring
+// // Importance is calculated by the number of sources (sourcefeedIds length)
 
-export async function getArticlesByFeedsAndDateRange(
-    feedIds: string[],
-    startDate: Date,
-    endDate: Date,
-    limit = 100,
-) {
-    return wrapDatabaseOperation(async () => {
-        const articles = await prisma.rssArticle.findMany({
-            where: {
-                OR: [
-                    { feedId: { in: feedIds } },
-                    {
-                        sourceFeedIds: {
-                            hasSome: feedIds,
-                        },
-                    },
-                ],
-                pubDate: {
-                    gte: startDate,
-                    lte: endDate,
-                },
-            },
-            include: ARTICLE_WITH_FEED_INCLUDE,
-            orderBy: ARTICLE_ORDER_BY_DATE_DESC,
-            take: limit,
-        });
+// export async function getArticlesByFeedsAndDateRange(
+//     feedIds: string[],
+//     startDate: Date,
+//     endDate: Date,
+//     limit = 100,
+// ) {
+//     return wrapDatabaseOperation(async () => {
+//         const articles = await prisma.rssArticle.findMany({
+//             where: {
+//                 OR: [
+//                     { feedId: { in: feedIds } },
+//                     {
+//                         sourceFeedIds: {
+//                             hasSome: feedIds,
+//                         },
+//                     },
+//                 ],
+//                 pubDate: {
+//                     gte: startDate,
+//                     lte: endDate,
+//                 },
+//             },
+//             include: ARTICLE_WITH_FEED_INCLUDE,
+//             orderBy: ARTICLE_ORDER_BY_DATE_DESC,
+//             take: limit,
+//         });
 
-        // Add sourceCount for referance
-        return articles.map((article: (typeof articles)[number]) => ({
-            ...article,
-            sourceCount: article.sourceFeedIds.length,
-        }));
-    }, "fetch articals by feeds and date range");
-}
+//         // Add sourceCount for referance
+//         return articles.map((article: (typeof articles)[number]) => ({
+//             ...article,
+//             sourceCount: article.sourceFeedIds.length,
+//         }));
+//     }, "fetch articals by feeds and date range");
+// }
 

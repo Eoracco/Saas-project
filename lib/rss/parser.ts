@@ -1,8 +1,8 @@
 import Parser from "rss-parser";
-import type { ArticlesData, FeedMetadata } from "./types";
+import type { ArticleData, FeedMetadata } from "./types";
 
 // re-export types for convenience
-export type { ArticlesData, FeedMetadata };
+export type { ArticleData, FeedMetadata };
 
 // RSS PARSER UTILITIES
 
@@ -97,7 +97,7 @@ export function extractFeedMetadata(
 export function extractArticles(
     feed: Parser.Output<unknown>,
     feedId: string
-): ArticlesData[] {
+): ArticleData[] {
     return feed.items.map((item) => {
         // Type assertion for fields not in Parser.Item type definition
         const itemAny = item as any;
@@ -105,18 +105,31 @@ export function extractArticles(
         // Use guid if available, fallback to link for deduplication
         const guid = item.guid || item.link || `${feedId}-${item.title}`;
 
-        const pubDate = item.isoDate
-            ? new Date(item.isoDate)
-            : item.pubDate
-                ? new Date(item.pubDate)
-                : new Date();
+        let pubDate = new Date();
+        try {
+            pubDate = item.isoDate
+                ? new Date(item.isoDate)
+                : item.pubDate
+                    ? new Date(item.pubDate)
+                    : new Date();
+
+            // Check if date is valid
+            if (isNaN(pubDate.getTime())) {
+                console.warn(`Invalid date for article ${item.title}, using current date`);
+                pubDate = new Date();
+            }
+        } catch (e) {
+            console.warn(`Error parsing date for article ${item.title}, using current date`);
+            pubDate = new Date();
+        }
 
         // Extract content - try various common RSS fields
-        const content =
+        let content =
             item.content ||
             itemAny["content:encoded"] ||
             itemAny.description ||
-            itemAny.summary;
+            itemAny.summary ||
+            "";
 
         // Extract author - try various common RSS fields
         const author = item.creator || itemAny.author;
@@ -132,13 +145,26 @@ export function extractArticles(
             imageUrl = item.enclosure.url;
         }
 
+        // Fallback for summary
+        let summary = item.summary || item.contentSnippet || itemAny.description;
+        if (!summary && content) {
+            // Create summary from content if missing (strip HTML tags and truncate)
+            const stripped = content.replace(/<[^>]*>?/gm, '');
+            summary = stripped.substring(0, 200) + (stripped.length > 200 ? '...' : '');
+        }
+
+        // Ensure content has something
+        if (!content && summary) {
+            content = summary;
+        }
+
         return {
-            feedId, // ✅ 添加缺失的 feedId
+            feedId,
             guid,
             title: item.title || "Untitled",
             link: item.link || "",
             content,
-            summary: item.summary, // ✅ 修复 summary
+            summary: summary || "",
             pubDate,
             author,
             categories,
@@ -151,7 +177,7 @@ export function extractArticles(
 // Returns both feed metadata and articles
 export async function fetchAndParseFeed(url: string, feedId: string) {
     try {
-        const feed = await parseFeedUrl(url); // ✅ 修复函数名
+        const feed = await parseFeedUrl(url);
         const metadata = extractFeedMetadata(feed);
         const articles = extractArticles(feed, feedId);
 

@@ -41,10 +41,7 @@ export default function DashboardHeader() {
                     {/* // logo/Brand */}
                     <div className="flex items-center gap-8">
                         <Link href="/dashboard" className="flex items-center gap-2">
-                            <span
-                                className="text-xl font-bold bg-linear-to-r from-blue-600 
-                        to-purple-600 bg-clip-text text-transparent"
-                            >
+                            <span className="text-xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                                 FeedStack
                             </span>
                         </Link>
